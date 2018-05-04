@@ -1,7 +1,7 @@
 # @File  : traclus_producer.py
 # @Author: 沈昌力
 # @Date  : 2018/4/13
-# @Desc  :
+# @Desc  : 模拟航迹点，作为生产者送入kafka。输入为原始航迹csv文件：-i Data/dotInfo10.csv
 import pandas as pd
 import click
 # json消息上传到kafka
@@ -13,7 +13,7 @@ from kafka import KafkaProducer
 @click.command()
 @click.option(
     '--input-file', '-i',
-    help='输入的航迹json文件，如果是cvs文件需要通过pre_process.py转为json文件再训练',
+    help='原始航迹cvs文件',
     required=True)
 def main(input_file):
     get_raw_data(input_file)
