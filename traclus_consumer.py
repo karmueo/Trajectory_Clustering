@@ -1,7 +1,7 @@
 # @File  : traclus_consumer.py
 # @Author: 沈昌力
 # @Date  : 2018/4/17
-# @Desc  :
+# @Desc  : 实时航迹检测，kafka消费者，-h输入kafuka服务器地址：-h 127.0.0.1:9092，-t输入topic名称：-t test2
 from kafka import KafkaConsumer
 import click
 from ClusterDetector import ClusterDetector
