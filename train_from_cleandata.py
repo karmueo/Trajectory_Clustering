@@ -1,7 +1,7 @@
 # @File  : train_from_cleandata.py
 # @Author: 沈昌力
 # @Date  : 2018/4/9
-# @Desc  :
+# @Desc  : pre_process.py处理后的json文件作为-i的输入文件，输出为-c指定的文件，可以设置领域范围-e，邻域线段数-n，是否显示聚类结果-p
 import click
 from traclus_impl.geometry import Point
 import json
