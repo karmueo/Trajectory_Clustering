@@ -1,0 +1,1 @@
+python secondary_train.py -i Data/Clusters.txt -c Clusters_Secondary.txt -e 0.02  -n 3

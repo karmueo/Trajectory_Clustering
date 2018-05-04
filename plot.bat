@@ -1,0 +1,1 @@
+python plot_train_res.py -i Data/dotInfo20_out_json_out.txt -c Data/Clusters.txt

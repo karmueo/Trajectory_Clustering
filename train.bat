@@ -1,0 +1,1 @@
+python train_from_cleandata.py -i Data/dotInfo20_out_json_out.txt -c Data/Clusters.txt -e 0.008  -n 3
