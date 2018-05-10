@@ -10,6 +10,13 @@ import click
 import pandas as pd
 
 def plot_one_cluster(fig, cluster, str_corlor):
+    """
+    绘制一个簇的航迹
+    :param fig: 指定绘制的图
+    :param cluster: 需要绘制的簇信息
+    :param str_corlor: 绘制的颜色
+    :return: None
+    """
     # 指定默认字体
     matplotlib.rcParams['font.sans-serif'] = ['SimHei']
     matplotlib.rcParams['font.family'] = 'sans-serif'
@@ -34,6 +41,12 @@ def plot_one_cluster(fig, cluster, str_corlor):
 
 
 def plot_one_cluster(cluster:pd.DataFrame, centers):
+    """
+    绘制一个簇的航迹
+    :param cluster: 需要绘制的簇信息
+    :param centers:
+    :return:
+    """
     for idx in range(centers):
         color = np.random.randint(16, 255, size=3)
         co = list(map(lambda c: c[2:].upper(), list(map(hex, color))))
@@ -51,6 +64,14 @@ def plot_one_cluster(cluster:pd.DataFrame, centers):
     plt.show()
 
 def plot_clusters(pic, fig1, clusters, title):
+    """
+    绘制簇图谱
+    :param pic: 子图
+    :param fig1: 主图
+    :param clusters: 簇信息
+    :param title: 图标题
+    :return:
+    """
     x = []
     y = []
 
@@ -85,7 +106,13 @@ def plot_clusters(pic, fig1, clusters, title):
 
 
 
-def plot_noise(pic, fig, noise):
+def plot_noise(pic, noise):
+    """
+    绘制噪声图
+    :param pic:指定绘制的图
+    :param noise: 噪声信息
+    :return:
+    """
     x = []
     y = []
     print('一共有%d条噪声线段' % (len(noise)))
@@ -109,6 +136,12 @@ def plot_noise(pic, fig, noise):
 
 
 def plot_raw2(fig, trajectorys):
+    """
+    绘制原始航迹
+    :param fig: 子图
+    :param trajectorys: 原始航迹
+    :return:
+    """
     print('开始绘制原始航迹图...')
     # 指定默认字体
     matplotlib.rcParams['font.sans-serif'] = ['SimHei']
@@ -131,6 +164,12 @@ def plot_raw2(fig, trajectorys):
     print('绘制原始航迹图完成')
 
 def plot_raw(pic, trajectorys):
+    """
+    绘制原始航迹
+    :param pic:绘制的图
+    :param trajectorys:航迹点信息
+    :return:
+    """
     x = []
     y = []
     for traj in trajectorys:
@@ -145,6 +184,12 @@ def plot_raw(pic, trajectorys):
 
 
 def plot_histogram(fig, hist):
+    """
+    绘制直方图
+    :param fig: 子图
+    :param hist: 直方图数据
+    :return:
+    """
     # 指定默认字体
     matplotlib.rcParams['font.sans-serif'] = ['SimHei']
     matplotlib.rcParams['font.family'] = 'sans-serif'

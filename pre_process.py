@@ -9,6 +9,12 @@ import time
 import numba
 
 def mycomp(us, data):
+    """
+    重排
+    :param us: 唯一标识Series
+    :param data: 原始数据
+    :return: 重新排序一个us对应该us所有的航迹点的信息
+    """
     trajs = []
     for u in us:
         u_data = data[data['US'] == u]
@@ -21,22 +27,20 @@ def mycomp(us, data):
 @click.command()
 @click.option('--input-file', '-i', required=True)
 def rawcsv2json(input_file):
+    """
+    将DataCleaning抽稀后的csv文件转为json格式的文件
+    :param input_file:
+    :return:
+    """
     data = pd.read_csv(input_file)
     data_ = data[data['C'] != -1]
     us = data_['US']
     us = us.drop_duplicates()
-    trajs = []
     print("开始转换")
     start = time.time()
 
     trajs = mycomp(us, data_)
 
-    # for u in us:
-    #     u_data = data_[data_['US'] == u]
-    #     u_data: pd.DataFrame = u_data[['LAT', 'LON']]
-    #     u_data.rename(columns={'LAT': 'x', 'LON': 'y'}, inplace=True)
-    #     traj = u_data.to_dict('records')
-    #     trajs.append(traj)
 
     tmp_str = input_file.split('.')
     assert len(tmp_str) == 2

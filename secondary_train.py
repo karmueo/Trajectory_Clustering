@@ -1,7 +1,7 @@
 # @File  : secondary_train.py
 # @Author: 沈昌力
 # @Date  : 2018/4/10
-# @Desc  : 训练噪声
+# @Desc  : 二次训练
 import click
 import operator
 from functools import reduce
@@ -44,6 +44,14 @@ def parse_input_and_run_traclus(input_file,
                                 clusters_output_file_name,
                                 epsilon,
                                 min_neighbors):
+    """
+    对输入文件数据进行聚类，并输出聚类结果
+    :param input_file: 输入文件
+    :param clusters_output_file_name: 输出的簇文件
+    :param epsilon: dbscan领域范围
+    :param min_neighbors: dbscan领域最小线段数
+    :return:
+    """
     tmp_str = input_file.split('.')
     assert len(tmp_str) == 2
     small_file = tmp_str[0] + '_small.txt'
@@ -82,6 +90,13 @@ def parse_input_and_run_traclus(input_file,
 
 
 def dbscan_caller(cluster_candidates, epsilon, min_neighbors):
+    """
+    dbscan接口调用
+    :param cluster_candidates: 切分后所有航迹线段
+    :param epsilon: dbscan领域范围
+    :param min_neighbors: dbscan领域最小线段数
+    :return:
+    """
     # cluster_candidates为切分后的所有线段
     line_seg_index = BestAvailableClusterCandidateIndex(cluster_candidates, epsilon)
     return dbscan(cluster_candidates_index=line_seg_index,
@@ -125,6 +140,14 @@ def combine_input(smallclusters, noise, trajectory_line_segment_factory):
 
 
 def save_clusters_res(file_name, clusters, noises, min_num_trajectories_in_cluster):
+    """
+    保存聚类结果
+    :param file_name: 保存的文件
+    :param clusters: 聚类结果
+    :param noises: 噪声结果
+    :param min_num_trajectories_in_cluster: 一个类中允许最小的线段数
+    :return:
+    """
     all_cluster_line_segs = []
     small_cluster_line_segs = []
     print("一共有%d个簇" % (len(clusters)))
@@ -160,6 +183,13 @@ def get_correct_path_to_file(file_name):
     return file_name
 
 def draw_raw(trajs, title, pic):
+    """
+    绘制原始航迹图
+    :param trajs:航迹信息
+    :param title: 图标题
+    :param pic: 绘制图容器
+    :return:
+    """
     x = []
     y = []
     for traj in trajs:
@@ -177,6 +207,14 @@ def draw_raw(trajs, title, pic):
     # pic.axis([121, 123, 30.8, 32])
 
 def draw_trajs(trajs, title, pic, color = 'red'):
+    """
+    绘制航迹
+    :param trajs: 航迹
+    :param title: 标题
+    :param pic: 图容器
+    :param color: 颜色
+    :return:
+    """
     x = []
     y = []
     for traj in trajs:
@@ -193,6 +231,13 @@ def draw_trajs(trajs, title, pic, color = 'red'):
     # pic.axis([121, 123, 30.8, 32])
 
 def show_res(raw, clusters, noises):
+    """
+    展示训练结果
+    :param raw:原始航迹
+    :param clusters: 聚类簇
+    :param noises: 噪声
+    :return:
+    """
     fig = plt.figure()
     a1 = fig.add_subplot(221)
     a2 = fig.add_subplot(222)

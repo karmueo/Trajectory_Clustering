@@ -10,10 +10,15 @@ from plot_train_res import plot_one_cluster
 import matplotlib.pyplot as plt
 import numpy as np
 
-n_centers = 2
+n_centers = 2  #定义Kmeans聚类的中心个数
 
 def one_cluster_angle_clustering(cluster, show=False):
-
+    """
+    输入一个簇，统计该簇的航向直方图，使用Kmeans聚类，把该簇根据航向分为两个簇
+    :param cluster: dbscan聚类后得到的簇
+    :param show: 是否显示航向直方图
+    :return: DataFrame类型的簇，簇中index表示属于新簇的类标识
+    """
     df = pd.DataFrame(cluster, columns=['start', 'end', 'angle'])
     km = KMeans(n_clusters=n_centers, random_state=0)
     km.fit(df['angle'].as_matrix().reshape(-1, 1))
@@ -40,6 +45,11 @@ def one_cluster_angle_clustering(cluster, show=False):
     '--show-clusters', '-s',
     help='是否显示每一簇的结果图', required=False)
 def angle_clustering(clusters_input_file, show_clusters=None):
+    """
+    根据航向进行聚类
+    :param clusters_input_file:dbscan聚类后得到的簇文件
+    :param show_clusters: 是否显示聚类结果
+    """
     files = clusters_input_file.split(',')
     clusters_input = []
     for f in files:

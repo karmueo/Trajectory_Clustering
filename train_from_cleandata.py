@@ -58,6 +58,24 @@ def parse_input_and_run_traclus(input_file,
                                 min_neighbors=None,
                                 show_clusters_angle_histogram=None,
                                 show_clusters=False):
+    """
+    对输入文件数据进行聚类，并输出聚类结果
+    :param input_file: 输入文件
+    :param clusters_output_file_name: 输出的簇文件
+    :param epsilon: dbscan领域范围
+    :param min_neighbors: dbscan领域最小线段数
+    :param show_clusters_angle_histogram: 是否显示航向直方图
+    :param show_clusters: 是否显示聚类结果图
+    :return:
+    """
+    """
+        对输入文件数据进行聚类，并输出聚类结果
+        :param input_file: 输入文件
+        :param clusters_output_file_name: 输出的簇文件
+        :param epsilon: dbscan领域范围
+        :param min_neighbors: dbscan领域最小线段数
+        :return:
+        """
     parsed_input = None
     with open(get_correct_path_to_file(input_file), 'r') as input_stream:
         parsed_input = json.loads(input_stream.read())

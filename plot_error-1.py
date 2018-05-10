@@ -1,7 +1,7 @@
 # @File  : plot_error-1.py
 # @Author: 沈昌力
 # @Date  : 2018/4/24
-# @Desc  :
+# @Desc  : 绘制检测错误的航迹点和原始航迹的关系图
 import click
 import json
 import matplotlib.pyplot as plt
@@ -10,6 +10,10 @@ import numpy as np
 
 
 def plot_raw(trajectorys):
+    """
+    绘制原始航迹
+    :param trajectorys:原始航迹
+    """
     x = []
     y = []
     for traj in trajectorys:
@@ -21,6 +25,10 @@ def plot_raw(trajectorys):
         plt.plot(y, x, 'red')
 
 def plot_error_points(points):
+    """
+    绘制异常航迹点
+    :param points:航迹点
+    """
     utmAccu = 1000
     x = []
     y = []
