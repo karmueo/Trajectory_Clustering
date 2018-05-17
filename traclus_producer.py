@@ -7,6 +7,7 @@ import click
 # json消息上传到kafka
 import json
 from kafka import KafkaProducer
+import time
 
 # producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
@@ -42,6 +43,8 @@ def get_raw_data(inputfile):
         for i in range(rows):
             dict_data = u_data.iloc[i].to_dict()
             send2kafka('test2', dict_data)
+        time.sleep(1)
+
 
 if __name__ == '__main__':
     main()

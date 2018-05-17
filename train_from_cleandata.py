@@ -2,80 +2,26 @@
 # @Author: 沈昌力
 # @Date  : 2018/4/9
 # @Desc  : pre_process.py处理后的json文件作为-i的输入文件，输出为-c指定的文件，可以设置领域范围-e，邻域线段数-n，是否显示聚类结果-p
-import click
 from traclus_impl.geometry import Point
 import json
 from traclus_impl.coordination import train_traclus
 import matplotlib.pyplot as plt
-from plot_train_res import plot_histogram, plot_one_cluster, plot_raw2
-
-@click.command()
-@click.option(
-    '--input-file', '-i',
-    help='输入的航迹json文件，如果是cvs文件需要通过pre_process.py转为json文件再训练',
-    required=True)
-@click.option(
-    '--clusters-output-file-name', '-c',
-    help='输出的聚类结果', required=True)
-@click.option(
-    '--epsilon', '-e',
-    help='领域范围', required=False)
-@click.option(
-    '--min-neighbors', '-n',
-    help='邻域线段数', required=False)
-@click.option(
-    '--show-clusters-angle-histogram', '-a',
-    help='是否显示每一簇的航向直方图', required=False)
-@click.option(
-    '--plot-clusters', '-p',
-    help='是否显示每一簇的结果图', required=False)
-def main(input_file,
-         clusters_output_file_name,
-         epsilon=None,
-         min_neighbors=None,
-         show_clusters_angle_histogram=None,
-         plot_clusters=None):
-
-    if plot_clusters==None:
-        result = parse_input_and_run_traclus(input_file,
-                                         clusters_output_file_name,
-                                         epsilon,
-                                         min_neighbors,
-                                         show_clusters_angle_histogram)
-    else:
-        result = parse_input_and_run_traclus(input_file,
-                                             clusters_output_file_name,
-                                             epsilon,
-                                             min_neighbors,
-                                             show_clusters_angle_histogram,
-                                             show_clusters=True)
-    print("训练结束")
+from plot_train_res import plot_histogram, plot_one_cluster3, plot_raw2
 
 
-def parse_input_and_run_traclus(input_file,
-                                clusters_output_file_name,
-                                epsilon=None,
-                                min_neighbors=None,
-                                show_clusters_angle_histogram=None,
-                                show_clusters=False):
+def first_train(config):
     """
-    对输入文件数据进行聚类，并输出聚类结果
-    :param input_file: 输入文件
-    :param clusters_output_file_name: 输出的簇文件
-    :param epsilon: dbscan领域范围
-    :param min_neighbors: dbscan领域最小线段数
-    :param show_clusters_angle_histogram: 是否显示航向直方图
-    :param show_clusters: 是否显示聚类结果图
+    聚类，并输出聚类结果
+    :param config: 配置文件接口
     :return:
     """
-    """
-        对输入文件数据进行聚类，并输出聚类结果
-        :param input_file: 输入文件
-        :param clusters_output_file_name: 输出的簇文件
-        :param epsilon: dbscan领域范围
-        :param min_neighbors: dbscan领域最小线段数
-        :return:
-        """
+    input_file = config.get('first_trian', 'input_file')
+    clusters_output_file_name = config.get('first_trian', 'output_file')
+    epsilon = config.getfloat('first_trian', 'epsilon')
+    min_neighbors = config.getint('first_trian', 'min_neighbors')
+    show_clusters_angle_histogram = config.getboolean('first_trian', 'show_clusters_angle_histogram')
+    show_clusters = config.getboolean('first_trian', 'show_clusters')
+
     parsed_input = None
     with open(get_correct_path_to_file(input_file), 'r') as input_stream:
         parsed_input = json.loads(input_stream.read())
@@ -87,24 +33,6 @@ def parse_input_and_run_traclus(input_file,
 
     clusters_hook = get_dump_clusters_hook(clusters_output_file_name, show_clusters_angle_histogram, show_clusters=show_clusters)
     print("start run_traclus")
-
-    if epsilon == None:
-        epsilon = 2500
-    else:
-        try:
-            epsilon = float(epsilon)
-        except:
-            print("epsilon 输入的不是数字！用默认值0.08代替了")
-            epsilon = 2500
-
-    if min_neighbors == None or min_neighbors.isdigit() == False:
-        min_neighbors = 3
-    else:
-        try:
-            min_neighbors = int(min_neighbors)
-        except:
-            print("min_neighbors输入的不是数字！用默认值3代替了")
-            min_neighbors = 3
 
     return train_traclus(point_iterable_list=trajs,
                          epsilon=epsilon,
@@ -125,13 +53,13 @@ def get_dump_clusters_hook(file_name, show_clusters_angle_histogram=None, min_nu
         index = 1
 
         for clust in clusters:
-            if show_clusters_angle_histogram!=None:
-                #计算角度直方图
+            if show_clusters_angle_histogram != None:
+                # 计算角度直方图
                 angles = clust.angle_histogram()
                 fig = plt.figure(str(index))
                 plot_histogram(fig, angles)
 
-            #统计大簇和小簇
+            # 统计大簇和小簇
             line_segs = clust.get_trajectory_line_segments()
             dict_output = list(map(lambda traj_line_seg: traj_line_seg.line_segment.as_dict(),
                                    line_segs))
@@ -140,13 +68,13 @@ def get_dump_clusters_hook(file_name, show_clusters_angle_histogram=None, min_nu
                 title = '该簇共有' + str(clust.num_trajectories_contained()) + '条线段'
                 fig_cluster = plt.figure(title)
                 print('开始绘制第%d个簇' % (index))
-                #随机取一个颜色作为簇的颜色
+                # 随机取一个颜色作为簇的颜色
                 import numpy as np
                 color = np.random.randint(16, 255, size=3)
                 co = list(map(lambda c: c[2:].upper(), list(map(hex, color))))
                 str_corlor = '#' + co[0] + co[1] + co[2]
-                #画簇
-                plot_one_cluster(fig_cluster, dict_output, str_corlor)
+                # 画簇
+                plot_one_cluster3(fig_cluster, dict_output, str_corlor)
                 print('绘制第%d个簇完成' % (index))
 
             if clust.num_trajectories_contained() < min_num_trajectories_in_cluster:
@@ -173,7 +101,7 @@ def get_dump_clusters_hook(file_name, show_clusters_angle_histogram=None, min_nu
         with open(get_correct_path_to_file(noise_file), 'w') as output:
             output.write(json.dumps(noise_cluster_line_segs))
 
-        if show_clusters_angle_histogram!=None or show_clusters==True:
+        if show_clusters_angle_histogram or show_clusters:
             plt.show()
     return func
 
@@ -181,6 +109,6 @@ def get_dump_clusters_hook(file_name, show_clusters_angle_histogram=None, min_nu
 def get_correct_path_to_file(file_name):
     return file_name
 
-
-if __name__ == '__main__':
-    main()
+#
+# if __name__ == '__main__':
+#     main()

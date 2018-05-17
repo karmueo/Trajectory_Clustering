@@ -8,9 +8,9 @@ from sklearn.cluster import KMeans      #引入kmeans
 import pandas as pd
 from plot_train_res import plot_one_cluster
 import matplotlib.pyplot as plt
-import numpy as np
 
 n_centers = 2  #定义Kmeans聚类的中心个数
+max_traj_in_clusters = 10  #进行航向聚类的簇中允许的最小航迹线段数
 
 def one_cluster_angle_clustering(cluster, show=False):
     """
@@ -23,7 +23,18 @@ def one_cluster_angle_clustering(cluster, show=False):
     km = KMeans(n_clusters=n_centers, random_state=0)
     km.fit(df['angle'].as_matrix().reshape(-1, 1))
     labels = km.labels_
+    s = sum(labels)
+    l = len(labels)
+    ratio = s/l
+
+
     df = pd.DataFrame(cluster, index=labels, columns=['start', 'end', 'angle'])
+    # 如果不同labels间相差太多,或簇中航迹总数小于30并且不同labels间相差太多，就不认同该聚类结果
+    if (((ratio < 0.1 or ratio > 0.9) and l < 30) or (ratio < 0.05 or ratio > 0.95)):
+        if ratio > 0.5:
+            return df.ix[1], False
+        else:
+            return df.ix[0], False
 
     if show == True:
         s = df['angle']
@@ -33,24 +44,18 @@ def one_cluster_angle_clustering(cluster, show=False):
         print('绘制聚类结果图，该簇共有%d条线段' % (df.shape[0]))
         plot_one_cluster(df, n_centers)
 
-    return df
+    return df, True
 
 
-@click.command()
-@click.option(
-    '--clusters-input-file', '-i',
-    help='输入的train_from_cleandata训练得到的航迹聚类文件',
-    required=True)
-@click.option(
-    '--show-clusters', '-s',
-    help='是否显示每一簇的结果图', required=False)
-def angle_clustering(clusters_input_file, show_clusters=None):
+def angle_clustering(config):
     """
     根据航向进行聚类
     :param clusters_input_file:dbscan聚类后得到的簇文件
     :param show_clusters: 是否显示聚类结果
     """
-    files = clusters_input_file.split(',')
+    clusters_input_file = config.get('angle_reclustering', 'input_files')
+    show_clusters = config.getboolean('angle_reclustering', 'show_clusters')
+    files = clusters_input_file.split(';')
     clusters_input = []
     for f in files:
         with open(f, 'r') as clusters_stream:
@@ -65,18 +70,27 @@ def angle_clustering(clusters_input_file, show_clusters=None):
     count = 0
     for c in clusters_input:
         count = count + 1
-        if show_clusters!=None:
-            angle_clusters = one_cluster_angle_clustering(c, True)
-        else:
-            angle_clusters = one_cluster_angle_clustering(c)
-        print('完成第 %d 个簇的航向聚类' % (count))
-        for idx in range(n_centers):
-            #航向聚类
-            one_angle_cluster : pd.DataFrame = angle_clusters.ix[idx]
-            # #计算该类的航向均值好标准差
-            # angle_mean = one_angle_cluster['angle'].mean()
-            # angle_std = one_angle_cluster['angle'].std()
+        if len(c) < max_traj_in_clusters:
+            print('完成第 %d 个簇的航向聚类' % (count))
+            new_clusters.append(c)
+            continue
 
+        angle_clusters, res = one_cluster_angle_clustering(c, show_clusters)
+        print('完成第 %d 个簇的航向聚类' % (count))
+        if res:
+            for idx in range(n_centers):
+                #航向聚类
+                one_angle_cluster : pd.DataFrame = angle_clusters.ix[idx]
+                # #计算该类的航向均值好标准差
+                # angle_mean = one_angle_cluster['angle'].mean()
+                # angle_std = one_angle_cluster['angle'].std()
+
+                d = one_angle_cluster.to_dict(orient='records')
+                list_one_angle_cluster = d
+                new_clusters.append(list_one_angle_cluster)
+        else:
+            # 航向聚类
+            one_angle_cluster = angle_clusters
             d = one_angle_cluster.to_dict(orient='records')
             list_one_angle_cluster = d
             new_clusters.append(list_one_angle_cluster)
@@ -86,5 +100,5 @@ def angle_clustering(clusters_input_file, show_clusters=None):
     with open(angle_reclustering_file, 'w') as output:
         output.write(json.dumps(new_clusters))
 
-if __name__ == '__main__':
-    angle_clustering()
+# if __name__ == '__main__':
+#     angle_clustering()

@@ -2,56 +2,52 @@
 # @Author: 沈昌力
 # @Date  : 2018/4/10
 # @Desc  : 二次训练
-import click
-import operator
-from functools import reduce
 import matplotlib.pyplot as plt
 from traclus_impl.geometry import Point, LineSegment
 from traclus_impl.generic_dbscan import dbscan
 from traclus_impl.traclus_dbscan import TrajectoryLineSegmentFactory, BestAvailableClusterCandidateIndex, TrajectoryClusterFactory
 import json
-import time
 import numpy as np
 
-@click.command()
-@click.option(
-    '--input-file', '-i',
-    help='train_from_cleandata输出的聚类文件名Clusters.txt',
-    required=True)
-@click.option(
-    '--clusters-output-file-name', '-c',
-    help='输出的二次聚类文件', required=True)
-@click.option(
-    '--epsilon', '-e',
-    help='领域范围', required=False)
-@click.option(
-    '--min-neighbors', '-n',
-    help='邻域线段数', required=False)
-def main(input_file,
-         clusters_output_file_name,
-         epsilon=None,
-         min_neighbors=None
-         ):
-    start = time.time()
-    result = parse_input_and_run_traclus(input_file,
-                                         clusters_output_file_name, epsilon, min_neighbors)
-    end = time.time()
-    print("训练时间为%f" % (end - start))
-    print("train done")
+# @click.command()
+# @click.option(
+#     '--input-file', '-i',
+#     help='train_from_cleandata输出的聚类文件名Clusters.txt',
+#     required=True)
+# @click.option(
+#     '--clusters-output-file-name', '-c',
+#     help='输出的二次聚类文件', required=True)
+# @click.option(
+#     '--epsilon', '-e',
+#     help='领域范围', required=False)
+# @click.option(
+#     '--min-neighbors', '-n',
+#     help='邻域线段数', required=False)
+# def main(input_file,
+#          clusters_output_file_name,
+#          epsilon=None,
+#          min_neighbors=None
+#          ):
+#     start = time.time()
+#     result = secondary_train(input_file,
+#                              clusters_output_file_name, epsilon, min_neighbors)
+#     end = time.time()
+#     print("训练时间为%f" % (end - start))
+#     print("train done")
 
 
-def parse_input_and_run_traclus(input_file,
-                                clusters_output_file_name,
-                                epsilon,
-                                min_neighbors):
+def secondary_train(config):
     """
-    对输入文件数据进行聚类，并输出聚类结果
-    :param input_file: 输入文件
-    :param clusters_output_file_name: 输出的簇文件
-    :param epsilon: dbscan领域范围
-    :param min_neighbors: dbscan领域最小线段数
+    二次聚类
+    :param config: 配置文件接口
     :return:
     """
+    input_file = config.get('secondary_trian', 'input_file')
+    clusters_output_file_name = config.get('secondary_trian', 'output_file')
+    epsilon = config.getfloat('secondary_trian', 'epsilon')
+    min_neighbors = config.getint('secondary_trian', 'min_neighbors')
+    show_clusters = config.getboolean('secondary_trian', 'show_clusters')
+
     tmp_str = input_file.split('.')
     assert len(tmp_str) == 2
     small_file = tmp_str[0] + '_small.txt'
@@ -65,28 +61,13 @@ def parse_input_and_run_traclus(input_file,
     trajectory_line_segment_factory = TrajectoryLineSegmentFactory()
     trajs = combine_input(small_input, noise_input, trajectory_line_segment_factory)
 
-    if epsilon == None:
-        epsilon = 0.005
-    else:
-        try:
-            epsilon = float(epsilon)
-        except:
-            print("epsilon 输入的不是数字！用默认值0.005代替了")
-            epsilon = 0.005
-
-    if min_neighbors == None or min_neighbors.isdigit() == False:
-        min_neighbors = 3
-    else:
-        try:
-            min_neighbors = int(min_neighbors)
-        except:
-            print("min_neighbors输入的不是数字！用默认值3代替了")
-            min_neighbors = 3
     clusters, noises = dbscan_caller(trajs, epsilon=epsilon, min_neighbors=min_neighbors)
 
     save_clusters_res(clusters_output_file_name, clusters, noises, min_num_trajectories_in_cluster=3)
-    print('计算完毕，开始绘制结果图...')
-    show_res(trajs, clusters, noises)
+    print('计算完毕')
+    if(show_clusters):
+        print('开始绘制二次聚类结果图...')
+        show_res(trajs, clusters, noises)
 
 
 def dbscan_caller(cluster_candidates, epsilon, min_neighbors):
@@ -254,5 +235,5 @@ def show_res(raw, clusters, noises):
     draw_trajs(noises, 'noises', a3)
     plt.show()
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

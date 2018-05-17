@@ -29,7 +29,7 @@ def mycomp(us, data):
 def rawcsv2json(input_file):
     """
     将DataCleaning抽稀后的csv文件转为json格式的文件
-    :param input_file:
+    :param input_file:csv文件
     :return:
     """
     data = pd.read_csv(input_file)
