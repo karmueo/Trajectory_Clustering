@@ -9,13 +9,14 @@ import secondary_train
 import angle_reclustering
 import plot_train_res
 
+
 @click.command()
 @click.option(
     '--config-path', '-p',
     help='配置文件路径',
     required=True)
 def main(config_path):
-    if config_path == None:
+    if config_path is None:
         config_path = 'Config/train_config.conf'
     cf = configparser.ConfigParser()
     cf.read(config_path, encoding='UTF-8')
@@ -28,9 +29,10 @@ def main(config_path):
     angle_reclustering.angle_clustering(cf)
     print("航向聚类结束")
 
-    isShowRes = cf.getboolean('plot_res', 'show_res')
-    if(isShowRes):
+    is_show_res = cf.getboolean('plot_res', 'show_res')
+    if is_show_res:
         plot_train_res.plot_res(cf)
+
 
 if __name__ == '__main__':
     main()

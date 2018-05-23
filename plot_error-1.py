@@ -41,6 +41,7 @@ def plot_error_points(points):
     plt.scatter(x, y, c='blue', marker='.')
         # print(p)
 
+
 @click.command()
 @click.option(
     '--input-file', '-i',
@@ -58,10 +59,25 @@ def main(input_file, error_file_name):
         plot_raw(trajectorys)
     print("==========绘制原始航迹图完成==========\n")
 
+
+
     with open(error_file_name, 'r') as error_stream:
-        error_points = json.loads(error_stream.read())
+        error_points = []
+        while(1):
+            line = error_stream.readline().split(',')
+            if len(line) != 4:
+                break
+            dict = {}
+            dict['LON'] = float(line[1].split(':')[-1].strip())
+            dict['LAT'] = float(line[2].split(':')[-1].strip())
+            error_points.append(dict)
         plot_error_points(error_points)
     plt.show()
+
+    # with open(error_file_name, 'r') as error_stream:
+    #     error_points = json.loads(error_stream.read())
+    #     plot_error_points(error_points)
+    # plt.show()
 
 
 if __name__ == '__main__':

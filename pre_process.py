@@ -6,7 +6,7 @@ import pandas as pd
 import json
 import click
 import time
-import numba
+
 
 def mycomp(us, data):
     """
@@ -23,6 +23,7 @@ def mycomp(us, data):
         traj = u_data.to_dict('records')
         trajs.append(traj)
     return trajs
+
 
 @click.command()
 @click.option('--input-file', '-i', required=True)
@@ -41,13 +42,12 @@ def rawcsv2json(input_file):
 
     trajs = mycomp(us, data_)
 
-
     tmp_str = input_file.split('.')
     assert len(tmp_str) == 2
     output_file = tmp_str[0] + '_json_out.txt'
     with open(output_file, 'w') as output:
-        str = json.dumps(trajs)
-        output.write(str)
+        str_trajs = json.dumps(trajs)
+        output.write(str_trajs)
     print("转换结束")
     end = time.time()
     print("------------>")
@@ -55,7 +55,5 @@ def rawcsv2json(input_file):
     print("<------------")
 
 
-
 if __name__ == '__main__':
     rawcsv2json()
-

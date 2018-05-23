@@ -4,13 +4,14 @@
 # @Desc  : 从位置聚类的结果中再次按航向进行聚类。输入为正常聚类以及二次聚类的结果，可以是多个文件，输出为Clusters_angle_reclustering.txt，合并了前面几个文件的聚类结果。
 import json
 import click
-from sklearn.cluster import KMeans      #引入kmeans
+from sklearn.cluster import KMeans  # 引入kmeans
 import pandas as pd
 from plot_train_res import plot_one_cluster
 import matplotlib.pyplot as plt
 
-n_centers = 2  #定义Kmeans聚类的中心个数
-max_traj_in_clusters = 10  #进行航向聚类的簇中允许的最小航迹线段数
+n_centers = 2  # 定义Kmeans聚类的中心个数
+max_traj_in_clusters = 10  # 进行航向聚类的簇中允许的最小航迹线段数
+
 
 def one_cluster_angle_clustering(cluster, show=False):
     """
@@ -25,18 +26,17 @@ def one_cluster_angle_clustering(cluster, show=False):
     labels = km.labels_
     s = sum(labels)
     l = len(labels)
-    ratio = s/l
-
+    ratio = s / l
 
     df = pd.DataFrame(cluster, index=labels, columns=['start', 'end', 'angle'])
     # 如果不同labels间相差太多,或簇中航迹总数小于30并且不同labels间相差太多，就不认同该聚类结果
-    if (((ratio < 0.1 or ratio > 0.9) and l < 30) or (ratio < 0.05 or ratio > 0.95)):
+    if ((ratio < 0.1 or ratio > 0.9) and l < 30) or (ratio < 0.05 or ratio > 0.95):
         if ratio > 0.5:
             return df.ix[1], False
         else:
             return df.ix[0], False
 
-    if show == True:
+    if show is True:
         s = df['angle']
         s.hist(bins=100, alpha=0.3, color='k', normed=True)
         s.plot(kind='kde', style='k--')
@@ -50,8 +50,8 @@ def one_cluster_angle_clustering(cluster, show=False):
 def angle_clustering(config):
     """
     根据航向进行聚类
-    :param clusters_input_file:dbscan聚类后得到的簇文件
-    :param show_clusters: 是否显示聚类结果
+    :param config: 配置文件
+    :return:
     """
     clusters_input_file = config.get('angle_reclustering', 'input_files')
     show_clusters = config.getboolean('angle_reclustering', 'show_clusters')
@@ -71,16 +71,16 @@ def angle_clustering(config):
     for c in clusters_input:
         count = count + 1
         if len(c) < max_traj_in_clusters:
-            print('完成第 %d 个簇的航向聚类' % (count))
+            print('完成第 %d 个簇的航向聚类' % count)
             new_clusters.append(c)
             continue
 
         angle_clusters, res = one_cluster_angle_clustering(c, show_clusters)
-        print('完成第 %d 个簇的航向聚类' % (count))
+        print('完成第 %d 个簇的航向聚类' % count)
         if res:
             for idx in range(n_centers):
-                #航向聚类
-                one_angle_cluster : pd.DataFrame = angle_clusters.ix[idx]
+                # 航向聚类
+                one_angle_cluster: pd.DataFrame = angle_clusters.ix[idx]
                 # #计算该类的航向均值好标准差
                 # angle_mean = one_angle_cluster['angle'].mean()
                 # angle_std = one_angle_cluster['angle'].std()

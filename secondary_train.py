@@ -65,7 +65,7 @@ def secondary_train(config):
 
     save_clusters_res(clusters_output_file_name, clusters, noises, min_num_trajectories_in_cluster=3)
     print('计算完毕')
-    if(show_clusters):
+    if show_clusters:
         print('开始绘制二次聚类结果图...')
         show_res(trajs, clusters, noises)
 
@@ -82,7 +82,7 @@ def dbscan_caller(cluster_candidates, epsilon, min_neighbors):
     line_seg_index = BestAvailableClusterCandidateIndex(cluster_candidates, epsilon)
     return dbscan(cluster_candidates_index=line_seg_index,
                   # TrajectoryLineSegmentCandidateIndex(cluster_candidates), \
-                  min_neighbors=min_neighbors, \
+                  min_neighbors=min_neighbors,
                   cluster_factory=TrajectoryClusterFactory(),
                   getnoise=True)
 
@@ -92,6 +92,7 @@ def combine_input(smallclusters, noise, trajectory_line_segment_factory):
     把输入的小簇和噪声合成航迹线段
     :param smallclusters: 小簇
     :param noise: 噪声
+    :param trajectory_line_segment_factory: 线段构造器
     :return: list<LineSegment>类型的航迹
     """
     trajs_raw = []
@@ -102,8 +103,18 @@ def combine_input(smallclusters, noise, trajectory_line_segment_factory):
     trajs_raw.append(noise)
 
     def funtmp(seg):
-        start = Point(x=seg['start']['x'], y=seg['start']['y'], C=seg['start']['c'], V=seg['start']['v'], TIME=seg['start']['time'])
-        end = Point(x=seg['end']['x'], y=seg['end']['y'], C=seg['end']['c'], V=seg['end']['v'], TIME=seg['end']['time'])
+        start = Point(
+            x=seg['start']['x'],
+            y=seg['start']['y'],
+            C=seg['start']['c'],
+            V=seg['start']['v'],
+            TIME=seg['start']['time'])
+        end = Point(
+            x=seg['end']['x'],
+            y=seg['end']['y'],
+            C=seg['end']['c'],
+            V=seg['end']['v'],
+            TIME=seg['end']['time'])
         lineseg = LineSegment(start, end)
         return lineseg
     trajs_seg = list(map(lambda traj: list(map(funtmp, traj)), trajs_raw))
@@ -112,8 +123,8 @@ def combine_input(smallclusters, noise, trajectory_line_segment_factory):
 
     def func(traj, trajectory_id):
         def _create_traj_line_seg(line_seg):
-            traj = trajectory_line_segment_factory.new_trajectory_line_seg(line_seg, trajectory_id=trajectory_id)
-            return traj
+            tj = trajectory_line_segment_factory.new_trajectory_line_seg(line_seg, trajectory_id=trajectory_id)
+            return tj
         return list(map(_create_traj_line_seg, traj))
 
     trajectorys = list(map(func, trajs_seg, trajectory_ids))
@@ -163,6 +174,7 @@ def save_clusters_res(file_name, clusters, noises, min_num_trajectories_in_clust
 def get_correct_path_to_file(file_name):
     return file_name
 
+
 def draw_raw(trajs, title, pic):
     """
     绘制原始航迹图
@@ -187,7 +199,8 @@ def draw_raw(trajs, title, pic):
     pic.set_title(title)
     # pic.axis([121, 123, 30.8, 32])
 
-def draw_trajs(trajs, title, pic, color = 'red'):
+
+def draw_trajs(trajs, title, pic, color='red'):
     """
     绘制航迹
     :param trajs: 航迹
@@ -210,6 +223,7 @@ def draw_trajs(trajs, title, pic, color = 'red'):
         pic.plot(y, x, c=color)  # 调用plot在当前的figure对象中绘图实际
     pic.set_title(title)
     # pic.axis([121, 123, 30.8, 32])
+
 
 def show_res(raw, clusters, noises):
     """

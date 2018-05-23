@@ -11,6 +11,7 @@ import time
 
 # producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
+
 @click.command()
 @click.option(
     '--input-file', '-i',
@@ -21,6 +22,8 @@ def main(input_file):
 
 
 producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+
+
 def send2kafka(topic, msg):
     print(msg)
     msg['US'] = str(msg['US'])
@@ -34,7 +37,7 @@ def send2kafka(topic, msg):
 
 def get_raw_data(inputfile):
     data = pd.read_csv(inputfile)
-    data = data[data['V']!=-1]
+    data = data[data['V'] != -1]
     us = data['US']
     us = us.drop_duplicates()
     for u in us:
@@ -43,7 +46,7 @@ def get_raw_data(inputfile):
         for i in range(rows):
             dict_data = u_data.iloc[i].to_dict()
             send2kafka('test2', dict_data)
-        time.sleep(1)
+        time.sleep(3)
 
 
 if __name__ == '__main__':

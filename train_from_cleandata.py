@@ -22,16 +22,17 @@ def first_train(config):
     show_clusters_angle_histogram = config.getboolean('first_trian', 'show_clusters_angle_histogram')
     show_clusters = config.getboolean('first_trian', 'show_clusters')
 
-    parsed_input = None
     with open(get_correct_path_to_file(input_file), 'r') as input_stream:
         parsed_input = json.loads(input_stream.read())
 
     trajs = list(map(lambda traj: list(map(lambda pt: Point(**pt), traj)), parsed_input))
-    if show_clusters == True:
+    if show_clusters is True:
         fig_raw = plt.figure('原始航迹')
         plot_raw2(fig_raw, trajs)
 
-    clusters_hook = get_dump_clusters_hook(clusters_output_file_name, show_clusters_angle_histogram, show_clusters=show_clusters)
+    clusters_hook = get_dump_clusters_hook(clusters_output_file_name,
+                                           show_clusters_angle_histogram,
+                                           show_clusters=show_clusters)
     print("start run_traclus")
 
     return train_traclus(point_iterable_list=trajs,
@@ -41,7 +42,11 @@ def first_train(config):
                          clusters_hook=clusters_hook)
 
 
-def get_dump_clusters_hook(file_name, show_clusters_angle_histogram=None, min_num_trajectories_in_cluster=10, show_clusters=False):
+def get_dump_clusters_hook(
+        file_name,
+        show_clusters_angle_histogram=False,
+        min_num_trajectories_in_cluster=10,
+        show_clusters=False):
     if not file_name:
         return None
 
@@ -49,11 +54,11 @@ def get_dump_clusters_hook(file_name, show_clusters_angle_histogram=None, min_nu
         mian_cluster_line_segs = []
         small_cluster_line_segs = []
         num_clusters = len(clusters)
-        print("一共有%d个簇" % (num_clusters))
+        print("一共有%d个簇" % num_clusters)
         index = 1
 
         for clust in clusters:
-            if show_clusters_angle_histogram != None:
+            if show_clusters_angle_histogram:
                 # 计算角度直方图
                 angles = clust.angle_histogram()
                 fig = plt.figure(str(index))
@@ -64,10 +69,10 @@ def get_dump_clusters_hook(file_name, show_clusters_angle_histogram=None, min_nu
             dict_output = list(map(lambda traj_line_seg: traj_line_seg.line_segment.as_dict(),
                                    line_segs))
 
-            if show_clusters == True:
+            if show_clusters is True:
                 title = '该簇共有' + str(clust.num_trajectories_contained()) + '条线段'
                 fig_cluster = plt.figure(title)
-                print('开始绘制第%d个簇' % (index))
+                print('开始绘制第%d个簇' % index)
                 # 随机取一个颜色作为簇的颜色
                 import numpy as np
                 color = np.random.randint(16, 255, size=3)
@@ -75,7 +80,7 @@ def get_dump_clusters_hook(file_name, show_clusters_angle_histogram=None, min_nu
                 str_corlor = '#' + co[0] + co[1] + co[2]
                 # 画簇
                 plot_one_cluster3(fig_cluster, dict_output, str_corlor)
-                print('绘制第%d个簇完成' % (index))
+                print('绘制第%d个簇完成' % index)
 
             if clust.num_trajectories_contained() < min_num_trajectories_in_cluster:
                 small_cluster_line_segs.append(dict_output)
