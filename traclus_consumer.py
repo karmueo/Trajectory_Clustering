@@ -114,13 +114,17 @@ def detect_procss(trajpt, send_producer, send_topic, trajclusters, cf, logger, l
                                             len_cheat=len_cheat)
         shipDetecting[trajpt['US']] = ship_tp
     else:
+        #必须先设置当前的点信息和聚类的簇信息
         ship.set_current_traj_pt(trajpt)
+        ship.set_cluster(trajclusters)
         # 测试这里使用客船训练的簇，实际中应该根据船舶类型选择对应的簇进行搜索
-        msg = ship.yaw(trajclusters)
-        if msg['type'] != 'None':
+        msg = ship.yaw()
+        msg = ship.abnormal_velocity(msg['cluster'])
+        if msg['yaw'] == 1 or msg['cheat'] == 1 or msg['abnormal_velocity'] == 1:
             logger_warning.warning(str(msg))
         else:
             logger.debug(str(msg))
+
 
 
 def track_detect(config_path):

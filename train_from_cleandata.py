@@ -6,7 +6,7 @@ from traclus_impl.geometry import Point
 import json
 from traclus_impl.coordination import train_traclus
 import matplotlib.pyplot as plt
-from plot_train_res import plot_histogram, plot_one_cluster3, plot_raw2
+from plot_train_res import plot_histogram, plot_one_cluster3, plot_raw2, draw_hist
 
 
 def first_train(config):
@@ -21,6 +21,7 @@ def first_train(config):
     min_neighbors = config.getint('first_trian', 'min_neighbors')
     show_clusters_angle_histogram = config.getboolean('first_trian', 'show_clusters_angle_histogram')
     show_clusters = config.getboolean('first_trian', 'show_clusters')
+    is_learning_para = config.getboolean('first_trian', 'is_learning_para')
 
     with open(get_correct_path_to_file(input_file), 'r') as input_stream:
         parsed_input = json.loads(input_stream.read())
@@ -35,11 +36,15 @@ def first_train(config):
                                            show_clusters=show_clusters)
     print("start run_traclus")
 
-    return train_traclus(point_iterable_list=trajs,
+    res = train_traclus(point_iterable_list=trajs,
                          epsilon=epsilon,
                          min_neighbors=min_neighbors,
                          min_vertical_lines=2,
-                         clusters_hook=clusters_hook)
+                         clusters_hook=clusters_hook,
+                         is_learning=is_learning_para)
+    if is_learning_para:
+        res.sort()
+        draw_hist(res)
 
 
 def get_dump_clusters_hook(

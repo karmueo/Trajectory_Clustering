@@ -20,6 +20,8 @@ def main(config_path):
         config_path = 'Config/train_config.conf'
     cf = configparser.ConfigParser()
     cf.read(config_path, encoding='UTF-8')
+
+
     train_from_cleandata.first_train(cf)
     print("一次训练结束")
 

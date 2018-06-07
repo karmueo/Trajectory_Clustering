@@ -8,7 +8,11 @@ from ClusterDetector import ClusterDetector
 
 def init_ship_clusters():
     traj_clusters = {}
-    clusters_1 = ClusterDetector('E:/SRC/TAD/DataCleaning/SHDATA/dotInfo61_UTM_clusters_grid.csv', 4)
+    clusters_1 = ClusterDetector(
+        'E:/SRC/TAD/DataCleaning/SHDATA/dotInfo61_UTM_clusters_grid.csv',
+        'E:/SRC/TAD/DataCleaning/SHDATA/dotInfo61_UTM_clusters_mean.csv',
+        4)
+    # Todo 1为客船，后面再加入其它类型的船舶
     traj_clusters[1] = clusters_1
     return traj_clusters
 
@@ -75,6 +79,14 @@ class TraclusPoint:
         self._producer.send(self._sendTopic, msg)
         self._producer.flush()
 
+    def set_cluster(self, clusters):
+        """
+        设置当前船舶类型的簇
+        :param clusters:
+        :return:
+        """
+        self._clusters_info = clusters
+
     def set_current_traj_pt(self, pt_dict):
         # v = pt_dict['V']
         # c = pt_dict['C']
@@ -92,6 +104,7 @@ class TraclusPoint:
         # self._currentPt = Point(xyArray[0][0], xyArray[0][1], pt_dict['C'], pt_dict['V'])  # 当前点
         self._acceleration = pt_dict['V'] - self._lastPt.v  # 加速度
         self._heading_acceleration = pt_dict['C'] - self._lastPt.c  # 航向加速度
+        self._warrMsg['point'] = self._trajPtDict
 
     def abnormal_anchor(self, anchor_clusters):
         """
@@ -104,39 +117,86 @@ class TraclusPoint:
         # if self._lenAbnormalAnchor > self._MaxAbnormalAnchor:
         # 告警
 
-    def yaw(self, clusters: ClusterDetector):
+    def yaw(self):
         """
         计算偏航
-        :param clusters: 其他船舶航迹聚类簇
         :return:
         """
-        traj_clusters = clusters[self.shipInf.type]
-        if traj_clusters.DetectCluster_UTM(self._currentPt.x, self._currentPt.y, 1000) == -1:
+        self._warrMsg['yaw'] = 0
+        self._warrMsg['cheat'] = 0
+        self._warrMsg['cluster'] = -1
+        # 获取指定船舶类型的簇
+        traj_clusters = self._clusters_info[self.shipInf.type]
+
+        if self._trajPtDict['V'] <= 0 or self._trajPtDict['C'] < 0:
+        #速度小于等于0或者航向为-1为非正常数据，不做处理
+            return self._warrMsg
+
+        f_type = traj_clusters.DetectCluster_UTM(self._currentPt.x, self._currentPt.y, 1000)
+        if f_type == -1:
             # 只要没有在自己簇中找到位置，就偏航异常+1
             self._len_yaw = self._len_yaw + 1
             # 只有渔船会仿冒它船，所以仿冒它船只计算渔船的步伐
             if self.shipInf.type == 3:  # 是渔船
                 # Todo 1 表示客船，后面还可以加货船等
-                if clusters[1].DetectCluster_UTM(self._currentPt.x, self._currentPt.y, 1000) > 0:
+                if self._clusters_info[1].DetectCluster_UTM(self._currentPt.x, self._currentPt.y, 1000) > 0:
                     self._len_cheat = self._len_cheat + 1
         else:
             self._len_yaw = 0
             self._len_cheat = 0
 
-        self._warrMsg['point'] = self._trajPtDict
 
+        self._warrMsg['cluster'] = f_type
         if self._len_yaw > self._MaxYaw:
             # 偏航异常告警
             print('偏航异常告警')
-            self._warrMsg['type'] = 'yaw'
+            self._warrMsg['yaw'] = 1
             self.send2kafka(self._warrMsg)
             return self._warrMsg
+        else:
+            self._warrMsg['yaw'] = 0
+
         if self._len_cheat > self._MaxCheat:
             # 仿冒它船异常告警
             print('仿冒它船异常告警')
-            self._warrMsg['type'] = 'cheat'
+            self._warrMsg['cheat'] = 1
             self.send2kafka(self._warrMsg)
             return self._warrMsg
+        else:
+            self._warrMsg['cheat'] = 0
 
-        self._warrMsg['type'] = 'None'
+        return self._warrMsg
+
+    def abnormal_velocity(self, cluster_index):
+        """
+        速度异常检测
+        :param cluster_index:
+        :return:
+        """
+        self._warrMsg['abnormal_velocity'] = 0
+        # 获取指定船舶类型的簇
+        traj_clusters: ClusterDetector = self._clusters_info[self.shipInf.type]
+        para = traj_clusters.GetCluster_Velocity(cluster_index)
+        if para is None:
+            return self._warrMsg
+
+        para_dict = para.to_dict(orient='records')[0]
+        v_bottom = para_dict['vBottom']
+        v_top = para_dict['vTop']
+
+        if self._trajPtDict['V'] <= 0 or self._trajPtDict['C'] < 0:
+        #速度小于等于0或者航向为-1为非正常数据，不做处理
+            return self._warrMsg
+
+        if self._trajPtDict['V'] > v_top or self._trajPtDict['V'] < v_bottom:
+            self._len_abnormal_velocity = self._len_abnormal_velocity + 1
+        else:
+            self._len_abnormal_velocity = 0
+
+        if self._len_abnormal_velocity > self._MaxAbnormalVelocity:
+            self._warrMsg['abnormal_velocity'] = 1
+            print('速度异常告警')
+            self.send2kafka(self._warrMsg)
+        else:
+            self._warrMsg['abnormal_velocity'] = 0
         return self._warrMsg

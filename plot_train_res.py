@@ -6,7 +6,6 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-import click
 import pandas as pd
 
 def plot_one_cluster3(fig, cluster, str_corlor):
@@ -203,6 +202,34 @@ def plot_histogram(fig, hist):
     plt.ylabel('航迹点数')
 
 
+def draw_hist(myList):
+    """
+    画单list直方图,数值从小到大排序，目前只在dbscan参数选择时使用
+    :param myList: 数据list
+    :param Title: 抬头
+    :return:
+    """
+    matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+    matplotlib.rcParams['font.family'] = 'sans-serif'
+    # 解决负号'-'显示为方块的问题
+    matplotlib.rcParams['axes.unicode_minus'] = False
+    plt.subplot(121)
+    plt.hist(myList, 800)
+    plt.xlabel('核心距离')
+    plt.ylabel('数量')
+    plt.xlim(0, 5000)
+    plt.title('核心距离直方图')
+
+    plt.subplot(122)
+    plt.plot(myList)
+    plt.xlabel('航迹线段排序')
+    plt.ylabel('最小核心距离')
+    plt.title('最小核心线段为5的情况下，所有航迹线段核心距离统计图')
+
+    plt.show()
+
+
+
 def plot_res(config):
     raw_file = config.get('first_trian', 'input_file')
     clusters_output_file_name = config.get('plot_res', 'clusters_path')
@@ -243,5 +270,6 @@ def plot_res(config):
     plt.show()
 
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    x = np.random.normal(loc=1000, scale=5.0, size=(1000))
+    draw_hist(x.tolist())
